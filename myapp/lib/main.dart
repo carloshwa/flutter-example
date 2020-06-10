@@ -26,13 +26,13 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Demo Home Page', counter: 0),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key key, this.title, this.counter}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -44,23 +44,23 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   final String title;
+  final int counter;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState(counter: counter);
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  _MyHomePageState({this.counter});
+  final int counter;
 
   void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+      return MyHomePage(
+        title: 'Flutter Demo Home Page',
+        counter: counter + 1,
+      );
+    }));
   }
 
   @override
@@ -101,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
               'You have pushed the button this many times:',
             ),
             Text(
-              '$_counter',
+              '$counter',
               style: Theme.of(context).textTheme.headline4,
             ),
           ],
