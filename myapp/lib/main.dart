@@ -68,27 +68,37 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Navigator(
-        key: _navigatorKey,
-        onGenerateRoute: (settings) {
-          return MaterialPageRoute(builder: (context) {
-            return ContentView(
-              counter: (settings.arguments as ContentArguments)?.counter ?? 0,
-            );
-          });
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    return WillPopScope(
+      onWillPop: () {
+        if (_navigatorKey.currentState.canPop()) {
+          _navigatorKey.currentState.pop();
+          return Future.value(false);
+        } else {
+          return Future.value(true);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          // Here we take the value from the MyHomePage object that was created by
+          // the App.build method, and use it to set our appbar title.
+          title: Text(widget.title),
+        ),
+        body: Navigator(
+          key: _navigatorKey,
+          onGenerateRoute: (settings) {
+            return MaterialPageRoute(builder: (context) {
+              return ContentView(
+                counter: (settings.arguments as ContentArguments)?.counter ?? 0,
+              );
+            });
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _incrementCounter,
+          tooltip: 'Increment',
+          child: Icon(Icons.add),
+        ), // This trailing comma makes auto-formatting nicer for build methods.
+      )
     );
   }
 }
