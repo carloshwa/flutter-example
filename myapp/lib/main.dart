@@ -26,13 +26,23 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page', counter: 0),
+      initialRoute: MyHomePage.routeName,
+      onGenerateRoute: (settings) {
+        final uri = Uri.parse(settings.name);
+        final count = int.parse(uri.queryParameters[MyHomePage.countParameter] ?? '0');
+        return MaterialPageRoute<dynamic>(builder: (_) =>
+            MyHomePage(title: 'Flutter Demo Home Page', counter: count)
+        );
+      },
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title, this.counter}) : super(key: key);
+
+  static const routeName = '/counter';
+  static const countParameter = 'count';
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -55,12 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final int counter;
 
   void _incrementCounter() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-      return MyHomePage(
-        title: 'Flutter Demo Home Page',
-        counter: counter + 1,
-      );
-    }));
+    Navigator.of(context).pushNamed('${MyHomePage.routeName}?${MyHomePage.countParameter}=${counter + 1}');
   }
 
   @override
