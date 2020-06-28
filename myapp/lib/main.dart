@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         final uri = Uri.parse(settings.name);
         final count = int.parse(uri.queryParameters[MyHomePage.countParameter] ?? '0');
-        return MaterialPageRoute<dynamic>(builder: (_) =>
+        return MaterialPageRoute<dynamic>(settings: settings, builder: (_) =>
             MyHomePage(title: 'Flutter Demo Home Page', counter: count)
         );
       },
