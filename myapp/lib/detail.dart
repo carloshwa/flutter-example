@@ -82,9 +82,7 @@ class InnerRouterDelegate extends RouterDelegate<BookRoutePath>
 
   InnerRouterDelegate(this._appState);
 
-  @override
-  Widget build(BuildContext context) {
-    print("inner build");
+  Widget _buildNavigator(BuildContext context) {
     return Navigator(
       key: navigatorKey,
       pages: [
@@ -114,6 +112,46 @@ class InnerRouterDelegate extends RouterDelegate<BookRoutePath>
         return route.didPop(result);
       },
     );
+  }
+
+  Widget _buildTabletView(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Expanded(child: BooksListScreen(
+          books: appState.books,
+          onTapped: _handleBookTapped,
+        )),
+        Visibility(visible: appState.selectedBook != null, child: Expanded(child: _buildNavigator(context)))
+      ],
+    );
+
+  }
+
+  Widget _buildMobileView(BuildContext context) {
+    return Stack(
+        children: [
+          BooksListScreen(
+            books: appState.books,
+            onTapped: _handleBookTapped,
+          ),
+          Visibility(visible: appState.selectedBook != null, child: _buildNavigator(context))
+        ]
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print("inner build");
+    return LayoutBuilder(builder: (context, constraints) {
+      if (constraints.maxWidth > 720) {
+        return _buildTabletView(context);
+      } else {
+        return _buildMobileView(context);
+      }
+    });
+
+
   }
 
   @override
