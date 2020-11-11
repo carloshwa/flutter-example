@@ -15,43 +15,14 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  InnerRouterDelegate _routerDelegate;
-  ChildBackButtonDispatcher _backButtonDispatcher;
-
-  void initState() {
-    super.initState();
-    _routerDelegate = InnerRouterDelegate(widget.appState);
-  }
-
-  @override
-  void didUpdateWidget(covariant AppShell oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _routerDelegate.appState = widget.appState;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Defer back button dispatching to the child router
-    _backButtonDispatcher = Router.of(context)
-        .backButtonDispatcher
-        .createChildBackButtonDispatcher();
-  }
-
   @override
   Widget build(BuildContext context) {
+    print("inner build");
     var appState = widget.appState;
-
-    // Claim priority, If there are parallel sub router, you will need
-    // to pick which one should take priority;
-    _backButtonDispatcher.takePriority();
 
     return Scaffold(
       appBar: AppBar(),
-      body: Router(
-        routerDelegate: _routerDelegate,
-        backButtonDispatcher: _backButtonDispatcher,
-      ),
+      body: _buildBody(context),
       bottomNavigationBar: BottomNavigationBar(
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
@@ -65,53 +36,17 @@ class _AppShellState extends State<AppShell> {
       ),
     );
   }
-}
 
-class InnerRouterDelegate extends RouterDelegate<BookRoutePath>
-    with ChangeNotifier, PopNavigatorRouterDelegateMixin<BookRoutePath> {
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-  BooksAppState get appState => _appState;
-  BooksAppState _appState;
-  set appState(BooksAppState value) {
-    if (value == _appState) {
-      return;
+  Widget _buildDetailView(BuildContext context) {
+    if (widget.appState.selectedBook != null) {
+      return BookDetailsScreen(book: widget.appState.selectedBook);
+    } else {
+      return Container();
     }
-    _appState = value;
-    notifyListeners();
   }
 
-  InnerRouterDelegate(this._appState);
-
-  Widget _buildNavigator(BuildContext context) {
-    return Navigator(
-      key: navigatorKey,
-      pages: [
-        if (appState.selectedIndex == 0) ...[
-          FadeAnimationPage(
-            child: BooksListScreen(
-              books: appState.books,
-              onTapped: _handleBookTapped,
-            ),
-            key: ValueKey('BooksListPage'),
-          ),
-          if (appState.selectedBook != null)
-            MaterialPage(
-              key: ValueKey(appState.selectedBook),
-              child: BookDetailsScreen(book: appState.selectedBook),
-            ),
-        ] else
-          FadeAnimationPage(
-            child: SettingsScreen(),
-            key: ValueKey('SettingsPage'),
-          ),
-      ],
-      onPopPage: (route, result) {
-        print("inner onPopPage");
-        appState.selectedBook = null;
-        notifyListeners();
-        return route.didPop(result);
-      },
-    );
+  void _handleBookTapped(Book book) {
+    widget.appState.selectedBook = book;
   }
 
   Widget _buildTabletView(BuildContext context) {
@@ -119,70 +54,38 @@ class InnerRouterDelegate extends RouterDelegate<BookRoutePath>
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Expanded(child: BooksListScreen(
-          books: appState.books,
+          books: widget.appState.books,
           onTapped: _handleBookTapped,
         )),
-        Visibility(visible: appState.selectedBook != null, child: Expanded(child: _buildNavigator(context)))
+        Visibility(visible: widget.appState.selectedBook != null, child: Expanded(child: _buildDetailView(context)))
       ],
     );
-
   }
 
   Widget _buildMobileView(BuildContext context) {
     return Stack(
         children: [
           BooksListScreen(
-            books: appState.books,
+            books: widget.appState.books,
             onTapped: _handleBookTapped,
           ),
-          Visibility(visible: appState.selectedBook != null, child: _buildNavigator(context))
+          Visibility(visible: widget.appState.selectedBook != null, child: _buildDetailView(context))
         ]
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    print("inner build");
-    return LayoutBuilder(builder: (context, constraints) {
-      if (constraints.maxWidth > 720) {
-        return _buildTabletView(context);
-      } else {
-        return _buildMobileView(context);
-      }
-    });
-
-
-  }
-
-  @override
-  Future<void> setNewRoutePath(BookRoutePath path) async {
-    // This is not required for inner router delegate because it does not
-    // parse route
-    assert(false);
-  }
-
-  void _handleBookTapped(Book book) {
-    appState.selectedBook = book;
-    notifyListeners();
-  }
-}
-
-class FadeAnimationPage extends Page {
-  final Widget child;
-
-  FadeAnimationPage({Key key, this.child}) : super(key: key);
-
-  Route createRoute(BuildContext context) {
-    return PageRouteBuilder(
-      settings: this,
-      pageBuilder: (context, animation, animation2) {
-        var curveTween = CurveTween(curve: Curves.easeIn);
-        return FadeTransition(
-          opacity: animation.drive(curveTween),
-          child: child,
-        );
-      },
-    );
+  Widget _buildBody(BuildContext context) {
+    if (widget.appState.selectedIndex == 0) {
+      return LayoutBuilder(builder: (context, constraints) {
+        if (constraints.maxWidth > 720) {
+          return _buildTabletView(context);
+        } else {
+          return _buildMobileView(context);
+        }
+      });
+    } else {
+      return SettingsScreen();
+    }
   }
 }
 
